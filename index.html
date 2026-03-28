@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Forest Adventure Math Game for Toddlers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body { margin:0; font-family: 'Arial', sans-serif; background: linear-gradient(#7BC6A4 0%, #4A9245 45%, #2F5033 100%); color: #2f2f2f; }
+#app { display:flex; min-height:100vh; }
+#game { flex:1; padding: 12px; box-sizing:border-box; }
+#map { width:260px; background: rgba(255,255,255,0.8); border-left:3px solid #3F7D34; position:relative; }
+header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); border-radius:8px; margin-bottom:8px; }
+#board { border: 2px solid #426B2F; border-radius: 12px; background: rgba(255,255,255,0.8); padding:10px; box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
+#scene { position:relative; height:300px; margin-bottom:12px; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.2); }
+.tree, .mountain, .stream, .rock { position:absolute; }
+.tree { width:60px; height:100px; }
+.tree .trunk { width:16px; height:60px; background:#8B5A2B; left:22px; top:40px; position:absolute; border-radius:4px; }
+.tree .leaf { position:absolute; width:80px; height:70px; background:#2F8A3E; border-radius:50%; left:-10px; top:0; }
+.mountain { width: 140px; height:90px; background:#8B8B8B; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); }
+.stream { width: 14px; height: 100%; background: linear-gradient(#B2D9FF 0%, #3595F5 100%); left:80px; }
+.rock{ width: 35px; height: 20px; background:#AAAAAA; border-radius:50%; }
+#puzzle { background:#FFF; border:2px solid #3A7B38; border-radius:10px; padding:14px; min-height:120px; }
+#puzzle h2 { margin:0 0 8px; font-size:1.2rem; color:#2B5723; }
+#puzzle p { margin:4px 0; font-size:1.1rem; }
+#answer { width:100%; padding:10px; font-size:1rem; border:2px solid #aaa; border-radius:8px; box-sizing:border-box; }
+#submit { margin-top:10px; width:100%; background:#4CAF50; color:white; font-size:1rem; border:none; border-radius:8px; padding:10px; cursor:pointer; }
+#submit:hover { background:#399232; }
+#feedback { margin-top:8px; height:58px; font-weight:bold; }
+#progressLabel { text-align:center; margin:9px 0 4px; color:#2f3d22; }
+#trail { display:grid; grid-template-columns: repeat(5, 1fr); grid-gap:4px; padding:8px; }
+.tile { width:36px; height:36px; border:1px solid #8FC08C; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; background:#dfead9; }
+.tile.completed { background: #54b852; color:white; font-weight:700; }
+.tile.current { border:2px solid #FFD700; background:#fff2a6; }
+#balloon { position:absolute; top:5px; right:10px; font-size:2.8rem; animation: floatup 2s ease-out infinite; opacity:0; }
+@keyframes floatup { 0% { transform: translateY(5px) scale(0.8); opacity:.6; } 100% { transform: translateY(-48px) scale(1.2); opacity:0; } }
+#map h3 { margin:12px; font-size:1.18rem; }
+#status { margin:8px; font-size:0.95rem; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <header><h1>Forest Math Journey</h1><small>Age 6 Adventure</small></header>
+    <div id="board">
+      <div id="scene"></div>
+      <div id="puzzle">
+        <h2 id="puzzleTitle">Welcome Explorer!</h2>
+        <p id="puzzleText">Solve 25 puzzles along the forest path to reach the magic tree house.</p>
+        <input id="answer" type="text" aria-label="Answer input" placeholder="Type answer here" />
+        <button id="submit">Submit</button>
+        <div id="feedback"></div>
+      </div>
+      <div id="progressLabel">Progress 0 / 25</div>
+      <div id="trail"></div>
+    </div>
+    <div id="balloon">🎈</div>
+  </div>
+  <aside id="map">
+    <h3>Forest Map</h3>
+    <div id="status">Path from Start to Goal</div>
+    <div id="miniGrid" style="display:grid; grid-template-columns: repeat(5, 36px); gap: 4px; padding:8px;"></div>
+    <div style="padding:8px;"><strong>Tip:</strong> Each turn a new puzzle appears. If wrong, try again.</div>
+  </aside>
+</div>
+<script>
+const puzzles = [
+  {type:'count', prompt:'How many flowers do you see? 4 + 3 = ?', answer:7},
+  {type:'count', prompt:'Count leaves: 5 + 2 = ?', answer:7},
+  {type:'add', prompt:'You collected 3 apples, then 4 more. Total apples?', answer:7},
+  {type:'add', prompt:'2 birds joined 5 more birds. How many birds?', answer:7},
+  {type:'sub', prompt:'7 butterflies, 2 flew away. How many left?', answer:5},
+  {type:'sub', prompt:'9 rocks, take away 3. How many remain?', answer:6},
+  {type:'shape', prompt:'Which shape has 3 sides? (circle/square/triangle)', answer:'triangle'},
+  {type:'shape', prompt:'What is round and has no corners? (circle/square/triangle)', answer:'circle'},
+  {type:'word', prompt:'Spell a forest animal: c a t => ?', answer:'cat'},
+  {type:'word', prompt:'Spell up: u p => ?', answer:'up'},
+  {type:'count', prompt:'8 mushrooms, add 1 more. How many?', answer:9},
+  {type:'add', prompt:'4 + 5 = ?', answer:9},
+  {type:'sub', prompt:'10 - 6 = ?', answer:4},
+  {type:'sub', prompt:'6 - 2 = ?', answer:4},
+  {type:'word', prompt:'What color is the sky? (blue/green/red)', answer:'blue'},
+  {type:'word', prompt:'The sun is (hot/cold/slow) ?', answer:'hot'},
+  {type:'shape', prompt:'How many sides does a square have?', answer:'4'},
+  {type:'shape', prompt:'A rectangle has how many corners?', answer:'4'},
+  {type:'add', prompt:'3 + 2 = ?', answer:5},
+  {type:'add', prompt:'1 + 7 = ?', answer:8},
+  {type:'sub', prompt:'5 - 1 = ?', answer:4},
+  {type:'count', prompt:'Count trees: 3 + 2 = ?', answer:5},
+  {type:'count', prompt:'3 bears plus 4 bears = ?', answer:7},
+  {type:'word', prompt:'A baby dog is called (puppy/kid/cub)', answer:'puppy'},
+  {type:'word', prompt:'Finish word: f o r e s t -> ?', answer:'forest'},
+  {type:'shape', prompt:'Circle or triangle: which has no corners?', answer:'circle'},
+  {type:'shape', prompt:'How many points on a star? (5/2/6)', answer:'5'},
+  {type:'add', prompt:'6 + 3 = ?', answer:9},
+  {type:'sub', prompt:'8 - 4 = ?', answer:4},
+  {type:'count', prompt:'7 birds - 2 birds (still flying)?', answer:5},
+  {type:'word', prompt:'The cloud is in the (sky/ground/tree)', answer:'sky'}
+];
+const state = { step:0, visits:[], path: [], completed:0, grid: [] };
+const totalSteps=25;
+const trailEl = document.getElementById('trail');
+const progressLabel = document.getElementById('progressLabel');
+const puzzleTitle = document.getElementById('puzzleTitle');
+const puzzleText = document.getElementById('puzzleText');
+const answerInput = document.getElementById('answer');
+const submit = document.getElementById('submit');
+const feedback = document.getElementById('feedback');
+const scene = document.getElementById('scene');
+const miniGrid = document.getElementById('miniGrid');
+const status = document.getElementById('status');
+const balloon = document.getElementById('balloon');
+
+function shuffle(array) {
+  const a=[...array]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;
+}
+
+function buildPath() {
+  // 5x5 grid path from start to end with random choices
+  const size=5;
+  const path=[{x:0,y:4}];
+  let x=0,y=4;
+  while(!(x===4&&y===0)){
+    const choices=[];
+    if(x<4) choices.push({x:x+1,y});
+    if(y>0) choices.push({x,y:y-1});
+    const next=choices[Math.floor(Math.random()*choices.length)];
+    if(path.some(p=>p.x===next.x&&p.y===next.y)) break;
+    path.push(next); x=next.x; y=next.y;
+  }
+  // if not enough, do direct path
+  while(path.length<totalSteps) {
+    let last = path[path.length-1];
+    if(last.x < 4) last = {x:last.x+1,y:last.y};
+    else if(last.y>0) last={x:last.x,y:last.y-1};
+    else break;
+    if(!path.some(p=>p.x===last.x&&p.y===last.y)) path.push(last);
+  }
+  state.path = path.slice(0,totalSteps);
+}
+
+function renderMiniMap() {
+  miniGrid.innerHTML='';
+  state.grid=[];
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++) {
+    const cell=document.createElement('div'); cell.className='tile';
+    cell.textContent='';
+    if(state.path.some(p=>p.x===c&&p.y===4-r)) cell.style.background='#B7E5AE';
+    miniGrid.appendChild(cell); state.grid.push({x:c,y:4-r,node:cell});
+  }
+}
+
+function renderTrail() {
+  trailEl.innerHTML='';
+  for(let i=0;i<totalSteps;i++){
+    const t=document.createElement('div'); t.className='tile';
+    if(state.step===i) t.classList.add('current');
+    if(i<state.completed) t.classList.add('completed');
+    t.textContent= i+1;
+    trailEl.appendChild(t);
+  }
+}
+
+function placeForest() {
+  scene.innerHTML='';
+  const things=[];
+  for(let i=0;i<5;i++){
+    const tree=document.createElement('div'); tree.className='tree';
+    tree.style.left=(Math.random()*80)+'%'; tree.style.top=(Math.random()*70)+'%';
+    tree.style.transform='scale('+((Math.random()*0.25)+0.7)+')';
+    tree.innerHTML='<div class="leaf"></div><div class="trunk"></div>';
+    scene.appendChild(tree);
+    things.push(tree);
+  }
+  const river=document.createElement('div'); river.className='stream'; river.style.left='35%'; river.style.height='100%'; scene.appendChild(river);
+  for(let i=0;i<3;i++){ const rock=document.createElement('div'); rock.className='rock'; rock.style.left=(20+i*20)+'%'; rock.style.top=(70 + i*6)+'%'; scene.appendChild(rock);} 
+}
+
+function setPuzzle() {
+  const pool = shuffle(puzzles).slice(0,totalSteps);
+  state.puzzleList = pool;
+  state.step = 0; state.completed=0;
+  showCurrent();
+  renderTrail();
+  updateMapFocus();
+  progressLabel.textContent=`Progress ${state.completed} / ${totalSteps}`;
+}
+
+function showCurrent() {
+  const current = state.puzzleList[state.step];
+  puzzleTitle.textContent=`Puzzle ${state.step+1}`;
+  puzzleText.textContent=current.prompt;
+  answerInput.value=''; answerInput.focus();
+  feedback.textContent='';
+}
+
+function updateMapFocus() {
+  state.grid.forEach(item=> item.node.style.border='1px solid #8FC08C');
+  if(state.path[state.step]) {
+    const node = state.grid.find(n=>n.x===state.path[state.step].x && n.y===state.path[state.step].y);
+    if(node) node.node.style.border='2px solid #FF8F00';
+  }
+  state.path.forEach((p, idx)=>{
+    const node = state.grid.find(n=>n.x===p.x && n.y===p.y);
+    if(node){
+      node.node.style.background = idx < state.completed ? '#4CAF50' : (idx===state.step ? '#FFEEAA':'#A3D58C');
+      node.node.textContent = idx+1;
+    }
+  });
+}
+
+function celebrate() {
+  feedback.textContent='🎉 Great job! You cleared the roadlock! 🎉';
+  feedback.style.color='#0b6f0d';
+  balloon.style.opacity='1';
+  setTimeout(()=>{balloon.style.opacity='0';},900);
+}
+
+function fail() {
+  feedback.textContent='Oops! Try again, brave explorer!';
+  feedback.style.color='#b43a3a';
+}
+
+function finishGame() {
+  puzzleTitle.textContent='You reached the tree house!';
+  puzzleText.textContent='Hooray! You solved all puzzles on the forest path and reached the magic tree house. Super star!';
+  answerInput.style.display='none'; submit.style.display='none';
+  feedback.textContent='🌟🌟🌟 Excellent! This is your victory! 🌟🌟🌟';
+  feedback.style.color='#165f85';
+  status.textContent='Journey complete! Nice work!';
+}
+
+submit.addEventListener('click', ()=>{
+  const current= state.puzzleList[state.step];
+  let ans = answerInput.value.trim().toLowerCase();
+  if(ans==='') { fail(); return; }
+  if(typeof current.answer === 'number') ans = Number(ans);
+  const correct = ans === current.answer;
+  if(correct) {
+    celebrate();
+    state.completed++;
+    state.step++;
+    renderTrail();
+    progressLabel.textContent=`Progress ${state.completed} / ${totalSteps}`;
+    status.textContent=`Forest path progress: ${state.completed} / ${totalSteps}`;
+    if(state.step>=totalSteps){ finishGame(); return; }
+    setTimeout(()=>{ showCurrent(); updateMapFocus(); }, 1000);
+  } else {
+    fail();
+  }
+});
+
+answerInput.addEventListener('keypress', e=>{if(e.key==='Enter'){submit.click();}});
+
+// init
+buildPath(); renderMiniMap(); placeForest(); setPuzzle();</script>
+</body>
+</html>
