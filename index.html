@@ -33,7 +33,7 @@ header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); bor
 #puzzle { background:#f9fff4; border:3px solid #3A7B38; border-radius:14px; padding:16px; min-height:150px; }
 #puzzle h2 { margin:0 0 10px; font-size:1.5rem; color:#1f5b2b; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
 #puzzle p { margin:5px 0; font-size:1.2rem; line-height:1.45; color:#1c4c2c; }
-#puzzleVisual { font-size:3rem; margin-bottom:10px; }
+#puzzleVisual { font-size:3rem; margin-bottom:10px; text-align:center; line-height:1.2; }
 
 #answer { width:100%; padding:14px; font-size:1.25rem; border:2px solid #4c7c3e; border-radius:10px; box-sizing:border-box; background:#fff; }
 #submit { margin-top:12px; width:100%; background:#4CAF50; color:white; font-size:1.2rem; font-weight:700; border:none; border-radius:11px; padding:12px; cursor:pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
@@ -80,37 +80,37 @@ header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); bor
 </div>
 <script>
 const puzzles = [
-  {type:'count', prompt:'How many flowers do you see? 4 + 3 = ?', answer:7},
-  {type:'count', prompt:'Count leaves: 5 + 2 = ?', answer:7},
-  {type:'add', prompt:'You collected 3 apples, then 4 more. Total apples?', answer:7},
-  {type:'add', prompt:'2 birds joined 5 more birds. How many birds?', answer:7},
-  {type:'sub', prompt:'7 butterflies, 2 flew away. How many left?', answer:5},
-  {type:'sub', prompt:'9 rocks, take away 3. How many remain?', answer:6},
-  {type:'shape', prompt:'Which shape has 3 sides? (circle/square/triangle)', answer:'triangle'},
-  {type:'shape', prompt:'What is round and has no corners? (circle/square/triangle)', answer:'circle'},
-  {type:'word', prompt:'Spell a forest animal: c a t => ?', answer:'cat'},
-  {type:'word', prompt:'Spell up: u p => ?', answer:'up'},
-  {type:'count', prompt:'8 mushrooms, add 1 more. How many?', answer:9},
-  {type:'add', prompt:'4 + 5 = ?', answer:9},
-  {type:'sub', prompt:'10 - 6 = ?', answer:4},
-  {type:'sub', prompt:'6 - 2 = ?', answer:4},
-  {type:'word', prompt:'What color is the sky? (blue/green/red)', answer:'blue'},
-  {type:'word', prompt:'The sun is (hot/cold/slow) ?', answer:'hot'},
-  {type:'shape', prompt:'How many sides does a square have?', answer:'4'},
-  {type:'shape', prompt:'A rectangle has how many corners?', answer:'4'},
-  {type:'add', prompt:'3 + 2 = ?', answer:5},
-  {type:'add', prompt:'1 + 7 = ?', answer:8},
-  {type:'sub', prompt:'5 - 1 = ?', answer:4},
-  {type:'count', prompt:'Count trees: 3 + 2 = ?', answer:5},
-  {type:'count', prompt:'3 bears plus 4 bears = ?', answer:7},
-  {type:'word', prompt:'A baby dog is called (puppy/kid/cub)', answer:'puppy'},
-  {type:'word', prompt:'Finish word: f o r e s t -> ?', answer:'forest'},
-  {type:'shape', prompt:'Circle or triangle: which has no corners?', answer:'circle'},
-  {type:'shape', prompt:'How many points on a star? (5/2/6)', answer:'5'},
-  {type:'add', prompt:'6 + 3 = ?', answer:9},
-  {type:'sub', prompt:'8 - 4 = ?', answer:4},
-  {type:'count', prompt:'7 birds - 2 birds (still flying)?', answer:5},
-  {type:'word', prompt:'The cloud is in the (sky/ground/tree)', answer:'sky'}
+  {type:'count', prompt:'How many flowers do you see?', answer:7, visual:'🌼🌼🌼🌼🌼🌼🌼'},
+  {type:'count', prompt:'Count leaves:', answer:7, visual:'🍂🍂🍂🍂🍂🍂🍂'},
+  {type:'add', prompt:'You collected 3 apples, then 4 more. Total apples?', answer:7, visual:'🍎🍎🍎 + 🍎🍎🍎🍎'},
+  {type:'add', prompt:'2 birds joined 5 more birds. How many birds?', answer:7, visual:'🐦🐦 + 🐦🐦🐦🐦🐦'},
+  {type:'sub', prompt:'7 butterflies, 2 flew away. How many left?', answer:5, visual:'🦋🦋🦋🦋🦋🦋🦋 - 🦋🦋'},
+  {type:'sub', prompt:'9 rocks, take away 3. How many remain?', answer:6, visual:'🪨🪨🪨🪨🪨🪨🪨🪨🪨 - 🪨🪨🪨'},
+  {type:'shape', prompt:'Which shape has 3 sides? (circle/square/triangle)', answer:'triangle', visual:'🔺'},
+  {type:'shape', prompt:'What is round and has no corners? (circle/square/triangle)', answer:'circle', visual:'⭕'},
+  {type:'word', prompt:'Spell a forest animal: c a t => ?', answer:'cat', visual:'🐱'},
+  {type:'word', prompt:'Spell up: u p => ?', answer:'up', visual:'⬆️'},
+  {type:'count', prompt:'8 mushrooms, add 1 more. How many?', answer:9, visual:'🍄🍄🍄🍄🍄🍄🍄🍄 + 🍄'},
+  {type:'add', prompt:'4 + 5 = ?', answer:9, visual:'4 + 5'},
+  {type:'sub', prompt:'10 - 6 = ?', answer:4, visual:'10 - 6'},
+  {type:'sub', prompt:'6 - 2 = ?', answer:4, visual:'6 - 2'},
+  {type:'word', prompt:'What color is the sky? (blue/green/red)', answer:'blue', visual:'🌤️'},
+  {type:'word', prompt:'The sun is (hot/cold/slow) ?', answer:'hot', visual:'☀️'},
+  {type:'shape', prompt:'How many sides does a square have?', answer:'4', visual:'⬜'},
+  {type:'shape', prompt:'A rectangle has how many corners?', answer:'4', visual:'▬'},
+  {type:'add', prompt:'3 + 2 = ?', answer:5, visual:'3 + 2'},
+  {type:'add', prompt:'1 + 7 = ?', answer:8, visual:'1 + 7'},
+  {type:'sub', prompt:'5 - 1 = ?', answer:4, visual:'5 - 1'},
+  {type:'count', prompt:'Count trees:', answer:5, visual:'🌳🌳🌳🌳🌳'},
+  {type:'count', prompt:'3 bears plus 4 bears = ?', answer:7, visual:'🐻🐻🐻 + 🐻🐻🐻🐻'},
+  {type:'word', prompt:'A baby dog is called (puppy/kid/cub)', answer:'puppy', visual:'🐶'},
+  {type:'word', prompt:'Finish word: f o r e s t -> ?', answer:'forest', visual:'🌲🌳🌲'},
+  {type:'shape', prompt:'Circle or triangle: which has no corners?', answer:'circle', visual:'⭕ vs 🔺'},
+  {type:'shape', prompt:'How many points on a star? (5/2/6)', answer:'5', visual:'⭐'},
+  {type:'add', prompt:'6 + 3 = ?', answer:9, visual:'6 + 3'},
+  {type:'sub', prompt:'8 - 4 = ?', answer:4, visual:'8 - 4'},
+  {type:'count', prompt:'7 birds - 2 birds (still flying)?', answer:5, visual:'🐦🐦🐦🐦🐦🐦🐦 - 🐦🐦'},
+  {type:'word', prompt:'The cloud is in the (sky/ground/tree)', answer:'sky', visual:'☁️'}
 ];
 const state = { step:0, visits:[], path: [], completed:0, grid: [], wrongAttempts: 0 };
 const totalSteps=25;
@@ -236,7 +236,7 @@ function setPuzzle() {
 function showCurrent() {
   const current = state.puzzleList[state.step];
   puzzleTitle.textContent=`Puzzle ${state.step+1}`;
-  puzzleVisual.textContent = iconForType(current.type);
+  puzzleVisual.textContent = current.visual || iconForType(current.type);
   puzzleText.textContent=current.prompt;
   answerInput.value=''; answerInput.disabled=false; answerInput.focus();
   feedback.textContent='';
