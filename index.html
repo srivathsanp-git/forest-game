@@ -5,13 +5,14 @@
 <title>Forest Adventure Math Game for Toddlers</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
-body { margin:0; font-family: 'Arial', sans-serif; background: linear-gradient(#7BC6A4 0%, #4A9245 45%, #2F5033 100%); color: #2f2f2f; }
-#app { display:flex; min-height:100vh; }
-#game { flex:1; padding: 12px; box-sizing:border-box; }
-#map { width:260px; background: rgba(255,255,255,0.8); border-left:3px solid #3F7D34; position:relative; }
+body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(160deg, #d3f2d0 0%, #95d7b0 45%, #427f57 100%); color: #1f3f20; }
+#app { display:flex; min-height:100vh; max-width: 1200px; margin: 0 auto; }
+#game { flex:1; padding: 18px; box-sizing:border-box; }
+#map { width:280px; background: rgba(255,255,255,0.94); border-left:4px solid #3F7D34; position:relative; box-shadow: 0 12px 24px rgba(15, 23, 15, 0.2); }
+
 header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); border-radius:8px; margin-bottom:8px; }
-#board { border: 2px solid #426B2F; border-radius: 12px; background: rgba(255,255,255,0.8); padding:10px; box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
-#scene { position:relative; height:340px; margin-bottom:12px; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.2); background: linear-gradient(to top, #6fae59 45%, #a9dcff 0); border:2px solid #3f7d34; }
+#board { border: 3px solid #39753d; border-radius: 20px; background: rgba(255,255,255,0.95); padding:16px; box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
+#scene { position:relative; height:360px; margin-bottom:14px; border-radius:18px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,0.25); background: linear-gradient(to top, #6fae59 40%, #b3e4ff 0); border:2px solid #3f7d34; }
 #scene::before { content:''; position:absolute; left:0; right:0; bottom:0; height:40%; background: radial-gradient(circle at 50% 0, rgba(255,255,255,0.3), transparent 50%); }
 .sun { position:absolute; width:78px; height:78px; top:18px; left:28px; background: radial-gradient(circle at 30% 30%, #fff89e, #ffce2c); border-radius:50%; box-shadow:0 0 60px rgba(255,195,45,0.5); }
 .cloud { position:absolute; background: #fff; width:80px; height:30px; border-radius:40px; opacity:0.93; box-shadow: 2px 3px 10px rgba(0,0,0,0.15); }
@@ -29,18 +30,22 @@ header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); bor
 .rock{ width: 28px; height: 17px; background:#898989; border-radius:45%; box-shadow: inset 0 0 8px rgba(0,0,0,0.2); }
 .bush{ width: 50px; height: 35px; background: #3f8a36; border-radius: 50%; box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
 .path { position:absolute; left:0; bottom:0; width:100%; height:40px; background: linear-gradient(to top, #ccb88a 0%, #e6daa4 100%); border-top-left-radius:30px; border-top-right-radius:30px; z-index:1; }
-#puzzle { background:#FFF; border:2px solid #3A7B38; border-radius:10px; padding:14px; min-height:120px; }
-#puzzle h2 { margin:0 0 8px; font-size:1.2rem; color:#2B5723; }
-#puzzle p { margin:4px 0; font-size:1.1rem; }
-#answer { width:100%; padding:10px; font-size:1rem; border:2px solid #aaa; border-radius:8px; box-sizing:border-box; }
-#submit { margin-top:10px; width:100%; background:#4CAF50; color:white; font-size:1rem; border:none; border-radius:8px; padding:10px; cursor:pointer; }
-#submit:hover { background:#399232; }
+#puzzle { background:#f9fff4; border:3px solid #3A7B38; border-radius:14px; padding:16px; min-height:150px; }
+#puzzle h2 { margin:0 0 10px; font-size:1.5rem; color:#1f5b2b; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+#puzzle p { margin:5px 0; font-size:1.2rem; line-height:1.45; color:#1c4c2c; }
+#puzzleVisual { font-size:3rem; margin-bottom:10px; }
+
+#answer { width:100%; padding:14px; font-size:1.25rem; border:2px solid #4c7c3e; border-radius:10px; box-sizing:border-box; background:#fff; }
+#submit { margin-top:12px; width:100%; background:#4CAF50; color:white; font-size:1.2rem; font-weight:700; border:none; border-radius:11px; padding:12px; cursor:pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
+#submit:hover { background:#40a643; transform: translateY(-1px); }
+#submit:active { transform: translateY(1px); }
+
 #feedback { margin-top:8px; height:58px; font-weight:bold; }
-#progressLabel { text-align:center; margin:9px 0 4px; color:#2f3d22; }
-#trail { display:grid; grid-template-columns: repeat(5, 1fr); grid-gap:4px; padding:8px; }
-.tile { width:36px; height:36px; border:1px solid #8FC08C; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; background:#dfead9; }
-.tile.completed { background: #54b852; color:white; font-weight:700; }
-.tile.current { border:2px solid #FFD700; background:#fff2a6; }
+#progressLabel { text-align:center; margin:9px 0 6px; color:#1e4a25; font-weight:700; font-size:1.05rem; }
+#trail { display:grid; grid-template-columns: repeat(5, 1fr); grid-gap:6px; padding:8px; margin-bottom:10px; }
+.tile { width:38px; height:38px; border:1px solid #8FC08C; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.88rem; background:#e8f1e2; }
+.tile.completed { background: #3c8b45; color:#fff; font-weight:700; box-shadow: inset 0 0 4px rgba(0,0,0,0.2); }
+.tile.current { border:2px solid #fcba03; background:#fff9bf; }
 #balloon { position:absolute; top:5px; right:10px; font-size:2.8rem; animation: floatup 2s ease-out infinite; opacity:0; }
 @keyframes floatup { 0% { transform: translateY(5px) scale(0.8); opacity:.6; } 100% { transform: translateY(-48px) scale(1.2); opacity:0; } }
 #map h3 { margin:12px; font-size:1.18rem; }
