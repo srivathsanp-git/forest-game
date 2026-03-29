@@ -11,14 +11,24 @@ body { margin:0; font-family: 'Arial', sans-serif; background: linear-gradient(#
 #map { width:260px; background: rgba(255,255,255,0.8); border-left:3px solid #3F7D34; position:relative; }
 header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); border-radius:8px; margin-bottom:8px; }
 #board { border: 2px solid #426B2F; border-radius: 12px; background: rgba(255,255,255,0.8); padding:10px; box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
-#scene { position:relative; height:300px; margin-bottom:12px; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.2); }
-.tree, .mountain, .stream, .rock { position:absolute; }
-.tree { width:60px; height:100px; }
-.tree .trunk { width:16px; height:60px; background:#8B5A2B; left:22px; top:40px; position:absolute; border-radius:4px; }
-.tree .leaf { position:absolute; width:80px; height:70px; background:#2F8A3E; border-radius:50%; left:-10px; top:0; }
-.mountain { width: 140px; height:90px; background:#8B8B8B; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); }
-.stream { width: 14px; height: 100%; background: linear-gradient(#B2D9FF 0%, #3595F5 100%); left:80px; }
-.rock{ width: 35px; height: 20px; background:#AAAAAA; border-radius:50%; }
+#scene { position:relative; height:340px; margin-bottom:12px; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.2); background: linear-gradient(to top, #6fae59 45%, #a9dcff 0); border:2px solid #3f7d34; }
+#scene::before { content:''; position:absolute; left:0; right:0; bottom:0; height:40%; background: radial-gradient(circle at 50% 0, rgba(255,255,255,0.3), transparent 50%); }
+.sun { position:absolute; width:78px; height:78px; top:18px; left:28px; background: radial-gradient(circle at 30% 30%, #fff89e, #ffce2c); border-radius:50%; box-shadow:0 0 60px rgba(255,195,45,0.5); }
+.cloud { position:absolute; background: #fff; width:80px; height:30px; border-radius:40px; opacity:0.93; box-shadow: 2px 3px 10px rgba(0,0,0,0.15); }
+.cloud::before, .cloud::after { content:''; position:absolute; background:#fff; width:45px; height:35px; border-radius:50%; top:-12px; }
+.cloud::before { left:-20px; }
+.cloud::after { right:-20px; top:-8px; }
+.tree, .mountain, .stream, .rock, .bush { position:absolute; }
+.tree { width:70px; height:120px; }
+.tree .trunk { width:18px; height:60px; background:#6b4524; left:26px; top:58px; position:absolute; border-radius:3px; }
+.tree .leaf { position:absolute; width:100px; height:80px; background:#1a6e2e; border-radius:50%; left:-15px; top:0; box-shadow:0 8px 14px rgba(25, 90, 38, 0.7); }
+.tree .leaf:nth-child(2){ top:20px; left:-8px; width:92px; height:75px; }
+.tree .leaf:nth-child(3){ top:8px; left:-4px; width:110px; height:90px; }
+.mountain { width:120px; height:100px; background: linear-gradient(145deg, #72897e 0%, #4f6a5e 100%); clip-path: polygon(0% 100%, 20% 35%, 45% 55%, 60% 27%, 78% 69%, 100% 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.stream { width: 18px; height: 110%; background: linear-gradient(to bottom, #a1d8f7 0%, #40a7eb 100%); left:80px; border-radius:10px; box-shadow: inset 0 0 20px RGBA(60, 116, 192, 0.5); }
+.rock{ width: 28px; height: 17px; background:#898989; border-radius:45%; box-shadow: inset 0 0 8px rgba(0,0,0,0.2); }
+.bush{ width: 50px; height: 35px; background: #3f8a36; border-radius: 50%; box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+.path { position:absolute; left:0; bottom:0; width:100%; height:40px; background: linear-gradient(to top, #ccb88a 0%, #e6daa4 100%); border-top-left-radius:30px; border-top-right-radius:30px; z-index:1; }
 #puzzle { background:#FFF; border:2px solid #3A7B38; border-radius:10px; padding:14px; min-height:120px; }
 #puzzle h2 { margin:0 0 8px; font-size:1.2rem; color:#2B5723; }
 #puzzle p { margin:4px 0; font-size:1.1rem; }
@@ -45,6 +55,7 @@ header { text-align:center; padding:7px 0; background:rgba(255,255,255,0.6); bor
       <div id="scene"></div>
       <div id="puzzle">
         <h2 id="puzzleTitle">Welcome Explorer!</h2>
+        <div id="puzzleVisual" style="font-size:2rem; text-align:center; margin:6px 0;">🌳</div>
         <p id="puzzleText">Solve 25 puzzles along the forest path to reach the magic tree house.</p>
         <input id="answer" type="text" aria-label="Answer input" placeholder="Type answer here" />
         <button id="submit">Submit</button>
@@ -96,7 +107,7 @@ const puzzles = [
   {type:'count', prompt:'7 birds - 2 birds (still flying)?', answer:5},
   {type:'word', prompt:'The cloud is in the (sky/ground/tree)', answer:'sky'}
 ];
-const state = { step:0, visits:[], path: [], completed:0, grid: [] };
+const state = { step:0, visits:[], path: [], completed:0, grid: [], wrongAttempts: 0 };
 const totalSteps=25;
 const trailEl = document.getElementById('trail');
 const progressLabel = document.getElementById('progressLabel');
@@ -109,6 +120,12 @@ const scene = document.getElementById('scene');
 const miniGrid = document.getElementById('miniGrid');
 const status = document.getElementById('status');
 const balloon = document.getElementById('balloon');
+const puzzleVisual = document.getElementById('puzzleVisual');
+
+function iconForType(type) {
+  const icons = {count:'🌼', add:'🍎', sub:'🍂', shape:'🔺', word:'📖'};
+  return icons[type] || '🌳';
+}
 
 function shuffle(array) {
   const a=[...array]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;
@@ -162,23 +179,49 @@ function renderTrail() {
 
 function placeForest() {
   scene.innerHTML='';
-  const things=[];
-  for(let i=0;i<5;i++){
-    const tree=document.createElement('div'); tree.className='tree';
-    tree.style.left=(Math.random()*80)+'%'; tree.style.top=(Math.random()*70)+'%';
-    tree.style.transform='scale('+((Math.random()*0.25)+0.7)+')';
-    tree.innerHTML='<div class="leaf"></div><div class="trunk"></div>';
-    scene.appendChild(tree);
-    things.push(tree);
+  const sun = document.createElement('div'); sun.className='sun'; scene.appendChild(sun);
+  const cloudCount = 4;
+  for(let i=0;i<cloudCount;i++) {
+    const cloud = document.createElement('div'); cloud.className='cloud';
+    cloud.style.left = (Math.random()*80)+'%';
+    cloud.style.top = (10 + Math.random()*20)+'px';
+    cloud.style.transform = 'scale(' + ((Math.random()*0.45)+0.8) + ')';
+    scene.appendChild(cloud);
   }
-  const river=document.createElement('div'); river.className='stream'; river.style.left='35%'; river.style.height='100%'; scene.appendChild(river);
-  for(let i=0;i<3;i++){ const rock=document.createElement('div'); rock.className='rock'; rock.style.left=(20+i*20)+'%'; rock.style.top=(70 + i*6)+'%'; scene.appendChild(rock);} 
+  const path = document.createElement('div'); path.className='path'; scene.appendChild(path);
+
+  const mountains = [ {left:'10%',top:'115px',scale:1.05}, {left:'45%',top:'110px',scale:1.2}, {left:'70%',top:'120px',scale:0.95} ];
+  for(const m of mountains){
+    const mountain=document.createElement('div'); mountain.className='mountain';
+    mountain.style.left=m.left; mountain.style.top=m.top; mountain.style.transform='scale('+m.scale+')';
+    scene.appendChild(mountain);
+  }
+
+  for(let i=0;i<10;i++){
+    const tree=document.createElement('div'); tree.className='tree';
+    tree.style.left=(Math.random()*90)+'%'; tree.style.top=(120 + Math.random()*130)+'px';
+    tree.style.zIndex = 3;
+    tree.style.transform='scale('+((Math.random()*0.3)+0.75)+')';
+    tree.innerHTML='<div class="leaf"></div><div class="leaf"></div><div class="leaf"></div><div class="trunk"></div>';
+    scene.appendChild(tree);
+  }
+
+  for(let i=0;i<6;i++) {
+    const bush=document.createElement('div'); bush.className='bush';
+    bush.style.left=(5 + i*14)+'%'; bush.style.top=(230 + (i%2)*8)+'px';
+    bush.style.transform='scale(' + ((Math.random()*0.35)+0.8) + ')';
+    scene.appendChild(bush);
+  }
+
+  for(let i=0;i<5;i++){ const rock=document.createElement('div'); rock.className='rock'; rock.style.left=(12+i*18)+'%'; rock.style.top=(250 + Math.random()*12)+'px'; scene.appendChild(rock);} 
+
+  const river=document.createElement('div'); river.className='stream'; river.style.left='30%'; river.style.height='120%'; scene.appendChild(river);
 }
 
 function setPuzzle() {
   const pool = shuffle(puzzles).slice(0,totalSteps);
   state.puzzleList = pool;
-  state.step = 0; state.completed=0;
+  state.step = 0; state.completed=0; state.wrongAttempts=0;
   showCurrent();
   renderTrail();
   updateMapFocus();
@@ -188,9 +231,11 @@ function setPuzzle() {
 function showCurrent() {
   const current = state.puzzleList[state.step];
   puzzleTitle.textContent=`Puzzle ${state.step+1}`;
+  puzzleVisual.textContent = iconForType(current.type);
   puzzleText.textContent=current.prompt;
-  answerInput.value=''; answerInput.focus();
+  answerInput.value=''; answerInput.disabled=false; answerInput.focus();
   feedback.textContent='';
+  state.wrongAttempts = 0;
 }
 
 function updateMapFocus() {
@@ -208,10 +253,55 @@ function updateMapFocus() {
   });
 }
 
+function playRightSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(520, ctx.currentTime);
+    o.connect(g);
+    g.connect(ctx.destination);
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    o.frequency.exponentialRampToValueAtTime(750, ctx.currentTime + 0.35);
+    setTimeout(() => { o.stop(); ctx.close(); }, 400);
+  } catch (e) {
+    const beep = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YRAAAA==');
+    beep.play().catch(()=>{});
+  }
+}
+
+function showBalloons() {
+  for (let i = 0; i < 4; i++) {
+    const b = document.createElement('div');
+    b.textContent = '🎈';
+    b.style.position = 'absolute';
+    b.style.left = (50 + (Math.random()-0.5)*40) + '%';
+    b.style.top = '260px';
+    b.style.fontSize = (22 + Math.random()*12) + 'px';
+    b.style.opacity = '0.9';
+    b.style.transition = 'transform 1.4s ease-out, top 1.4s ease-out, opacity 1.4s ease-out';
+    document.getElementById('game').appendChild(b);
+    requestAnimationFrame(() => {
+      b.style.transform = 'translateY(-180px) rotate(' + ((Math.random()*60)-30) + 'deg)';
+      b.style.top = '80px';
+      b.style.opacity = '0';
+    });
+    setTimeout(() => b.remove(), 1500);
+  }
+}
+
 function celebrate() {
   feedback.textContent='🎉 Great job! You cleared the roadlock! 🎉';
   feedback.style.color='#0b6f0d';
   balloon.style.opacity='1';
+  showBalloons();
+  playRightSound();
   setTimeout(()=>{balloon.style.opacity='0';},900);
 }
 
@@ -237,6 +327,7 @@ submit.addEventListener('click', ()=>{
   const correct = ans === current.answer;
   if(correct) {
     celebrate();
+    state.wrongAttempts = 0;
     state.completed++;
     state.step++;
     renderTrail();
@@ -245,7 +336,22 @@ submit.addEventListener('click', ()=>{
     if(state.step>=totalSteps){ finishGame(); return; }
     setTimeout(()=>{ showCurrent(); updateMapFocus(); }, 1000);
   } else {
-    fail();
+    state.wrongAttempts += 1;
+    if(state.wrongAttempts >= 3) {
+      answerInput.disabled = true;
+      const correctAnswer = current.answer;
+      feedback.textContent = `You tried hard! The right answer is ${correctAnswer}. Let's continue!`;
+      feedback.style.color = '#0b6f0d';
+      state.completed++;
+      state.step++;
+      renderTrail();
+      progressLabel.textContent=`Progress ${state.completed} / ${totalSteps}`;
+      status.textContent=`Forest path progress: ${state.completed} / ${totalSteps}`;
+      if(state.step>=totalSteps){ setTimeout(finishGame, 1200); return; }
+      setTimeout(()=>{ showCurrent(); updateMapFocus(); }, 1200);
+    } else {
+      fail();
+    }
   }
 });
 
